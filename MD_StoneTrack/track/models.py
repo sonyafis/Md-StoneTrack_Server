@@ -1,19 +1,30 @@
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Avg, F, ExpressionWrapper, DurationField
 
-class SuperUser(models.Model):
+class SuperUser(AbstractUser):
     id_super_user = models.AutoField(primary_key=True)
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    middle_name = models.CharField(max_length=255, blank=True, null=True)
-    login = models.CharField(max_length=255, unique=True)
-    password = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=20)
-    type_user = models.CharField(max_length=50)  # Например, "admin", "courier", "client"
+    ADMIN = 'admin'
+    COURIER = 'courier'
+    CLIENT = 'client'
+
+    TYPE_CHOICES = [
+        (ADMIN, 'Admin'),
+        (COURIER, 'Courier'),
+        (CLIENT, 'Client'),
+    ]
+
+    # Добавляем поле type_user с выбором
+    type_user = models.CharField(
+        max_length=10,
+        choices=TYPE_CHOICES,
+        default=CLIENT,  # Можно по умолчанию сделать 'client'
+    )
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.type_user})"
+        return self.username
 
 
 class Status(models.Model):
@@ -46,6 +57,7 @@ class Feedback(models.Model):
     message = models.TextField()
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     type_feedback = models.CharField(max_length=50)  # Например, "complaint", "suggestion"
+    #
     id_super_user = models.ForeignKey(SuperUser, on_delete=models.CASCADE)
 
     def __str__(self):

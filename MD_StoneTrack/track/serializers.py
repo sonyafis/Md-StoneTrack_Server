@@ -1,10 +1,34 @@
+from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth.password_validation import validate_password
+from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 from .models import SuperUser, Status, Order, Feedback, CourierAnalytics
+
+User = get_user_model()
 
 class SuperUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = SuperUser
-        fields = "__all__"
+        fields = ('id_super_user', 'username', 'email', 'phone_number', 'type_user')
+
+class RegisterSerializer(UserCreateSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'phone_number', 'password', 'password2', 'type_user')
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "Пароли не совпадают"})
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('password2')
+        if 'type_user' not in validated_data:
+            validated_data['type_user'] = 'client'  # По умолчанию клиент
+        return User.objects.create_user(**validated_data)
 
 
 class StatusSerializer(serializers.ModelSerializer):
@@ -15,8 +39,8 @@ class StatusSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     id_status = StatusSerializer(read_only=True)
-    id_client = SuperUserSerializer(read_only=True)
-    id_courier = SuperUserSerializer(read_only=True)
+    id_client = SuperUserSerializer(read_only=True)  # Сериализуем пользователя как "client"
+    id_courier = SuperUserSerializer(read_only=True)  # Сериализуем пользователя как "courier"
 
     class Meta:
         model = Order
@@ -24,7 +48,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
-    id_super_user = SuperUserSerializer(read_only=True)
+    id_super_user = SuperUserSerializer(read_only=True)  # Сериализуем пользователя как "superuser"
 
     class Meta:
         model = Feedback
@@ -32,8 +56,9 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 
 class CourierAnalyticsSerializer(serializers.ModelSerializer):
-    id_courier = SuperUserSerializer(read_only=True)
+    id_courier = SuperUserSerializer(read_only=True)  # Сериализуем курьера
 
     class Meta:
         model = CourierAnalytics
         fields = "__all__"
+
