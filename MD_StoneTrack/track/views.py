@@ -1,49 +1,58 @@
-from rest_framework import viewsets
+from django.contrib.auth import get_user_model
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, permissions, filters
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import status
-from .models import SuperUser, Status, Order, Feedback, CourierAnalytics
-from .serializers import SuperUserSerializer, StatusSerializer, OrderSerializer, FeedbackSerializer, CourierAnalyticsSerializer
+from djoser.views import UserViewSet
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-# 🚀 CRUD для SuperUser
-class SuperUserViewSet(viewsets.ModelViewSet):
-    queryset = SuperUser.objects.all()
-    serializer_class = SuperUserSerializer
+from .models import Status, Order, Feedback, CourierAnalytics
+from .permissons import IsAdmin, IsCourier, IsClient
+from .serializers import StatusSerializer, OrderSerializer, FeedbackSerializer, CourierAnalyticsSerializer
 
-# 🚀 CRUD для Status
+User = get_user_model()
+
+class CustomUserViewSet(UserViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['type_user']
+
+    def get_queryset(self):
+        print("Request query params:", self.request.query_params)  # Для отладки
+        queryset = User.objects.all()
+        type_user = self.request.query_params.get("type_user")
+
+        if type_user:
+            queryset = queryset.filter(type_user=type_user)
+
+        return queryset
+
+
 class StatusViewSet(viewsets.ModelViewSet):
     queryset = Status.objects.all()
     serializer_class = StatusSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
 
-# 🚀 CRUD для Order
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
 
-# 🚀 CRUD для Feedback
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            if self.request.user.type_user == 'courier':
+                return [IsAuthenticated(), IsCourier()]
+            elif self.request.user.type_user == 'client':
+                return [IsAuthenticated(), IsClient()]
+        elif self.action in ['create', 'update', 'destroy']:
+            return [IsAuthenticated(), IsAdmin()]
+        return super().get_permissions()
+
 class FeedbackViewSet(viewsets.ModelViewSet):
     queryset = Feedback.objects.all()
     serializer_class = FeedbackSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
 
-# 🚀 CRUD для CourierAnalytics
 class CourierAnalyticsViewSet(viewsets.ModelViewSet):
     queryset = CourierAnalytics.objects.all()
     serializer_class = CourierAnalyticsSerializer
-
-
-# 🔥 Дополнительное API для получения заказов конкретного пользователя
-class UserOrdersAPIView(APIView):
-    def get(self, request, user_id):
-        orders = Order.objects.filter(id_client__id_super_user=user_id)
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-# 🔥 API для аналитики конкретного курьера
-class CourierAnalyticsAPIView(APIView):
-    def get(self, request, courier_id):
-        try:
-            analytics = CourierAnalytics.objects.get(id_courier__id_super_user=courier_id)
-            serializer = CourierAnalyticsSerializer(analytics)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except CourierAnalytics.DoesNotExist:
-            return Response({"error": "Аналитика не найдена"}, status=status.HTTP_404_NOT_FOUND)
+    permission_classes = [IsAuthenticated, IsAdmin]
