@@ -56,12 +56,38 @@ class Feedback(models.Model):
     email = models.EmailField()
     message = models.TextField()
     phone_number = models.CharField(max_length=20, blank=True, null=True)
-    type_feedback = models.CharField(max_length=50)  # Например, "complaint", "suggestion"
-    #
+
+    # Добавляем choices для типа отзыва на русском языке
+    TYPE_FEEDBACK_CHOICES = [
+        ('complaint', 'Жалоба'),
+        ('suggestion', 'Предложение'),
+        ('inquiry', 'Запрос'),
+        ('praise', 'Похвала'),
+        ('issue', 'Проблема'),
+        ('request', 'Заявка'),
+        ('feedback', 'Обратная связь'),
+    ]
+
+    type_feedback = models.CharField(max_length=50, choices=TYPE_FEEDBACK_CHOICES)  # Поле с выбором типа отзыва
+
+    # Пользователь и его тип
+    USER_TYPE_CHOICES = [
+        ('courier', 'Курьер'),
+        ('client', 'Клиент'),
+    ]
+    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, blank=True, null=True)  # Тип пользователя
+
+    # Связь с пользователем
     id_super_user = models.ForeignKey(SuperUser, on_delete=models.CASCADE)
 
+    def save(self, *args, **kwargs):
+        """Автоматически заполняем user_type на основе id_super_user"""
+        if self.id_super_user:
+            self.user_type = self.id_super_user.type_user  # Заполняем тип пользователя
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"Feedback from {self.user_fullname}"
+        return f"Обратная связь от {self.user_fullname} ({self.user_type})"
 
 
 class CourierAnalytics(models.Model):

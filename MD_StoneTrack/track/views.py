@@ -36,8 +36,14 @@ class StatusViewSet(viewsets.ModelViewSet):
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['id_client', 'id_courier']  # Фильтрация по клиенту и курьеру
 
     def get_permissions(self):
+        if not self.request.user.is_authenticated:
+            return [IsAuthenticated()]  # Запрещаем доступ анонимным пользователям
+
         if self.action in ['list', 'retrieve']:
             if self.request.user.type_user == 'courier':
                 return [IsAuthenticated(), IsCourier()]
@@ -45,12 +51,26 @@ class OrderViewSet(viewsets.ModelViewSet):
                 return [IsAuthenticated(), IsClient()]
         elif self.action in ['create', 'update', 'destroy']:
             return [IsAuthenticated(), IsAdmin()]
+
         return super().get_permissions()
+
+    def get_queryset(self):
+        queryset = Order.objects.all()
+
+        if self.request.user.type_user == 'client':
+            return queryset.filter(id_client=self.request.user)
+
+        if self.request.user.type_user == 'courier':
+            return queryset.filter(id_courier=self.request.user)
+
+        return queryset  # Администраторы видят все заказы
 
 class FeedbackViewSet(viewsets.ModelViewSet):
     queryset = Feedback.objects.all()
     serializer_class = FeedbackSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['id_super_user', 'user_type']
 
 class CourierAnalyticsViewSet(viewsets.ModelViewSet):
     queryset = CourierAnalytics.objects.all()

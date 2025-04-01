@@ -48,11 +48,13 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
-    id_super_user = SuperUserSerializer(read_only=True)  # Сериализуем пользователя как "superuser"
+    id_super_user = SuperUserSerializer(read_only=True)  # Показываем информацию о пользователе
+    type_user = serializers.CharField(source="id_super_user.type_user", read_only=True)  # Отображаем тип пользователя
 
     class Meta:
         model = Feedback
         fields = "__all__"
+
 
 
 class CourierAnalyticsSerializer(serializers.ModelSerializer):
