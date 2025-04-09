@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-9dsn_^%jtr(2h5%7c-uz36pns*oy^90hifwcq=^1u#on+!&w!^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '10.0.2.2',
+    '192.168.0.1',
+]
 
 
 # Application definition
@@ -44,9 +49,39 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework_simplejwt.token_blacklist',
     'rest_framework.authtoken',
+    'corsheaders',
+]
+
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+
+# Разрешить cookies и авторизацию
+CORS_ALLOW_CREDENTIALS = True
+
+# Разрешенные методы
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# Разрешенные заголовки
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -206,6 +241,7 @@ DJOSER = {
         'current_user': 'track.serializers.SuperUserSerializer',
     },
     'PERMISSIONS': {
+        'user_create': ['rest_framework.permissions.AllowAny'],
         'user_list': ['rest_framework.permissions.IsAdminUser'],
         'user': ['rest_framework.permissions.IsAuthenticated'],
     },

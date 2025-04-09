@@ -2,9 +2,7 @@ from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, filters
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from djoser.views import UserViewSet
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .models import Status, Order, Feedback, CourierAnalytics
 from .permissons import IsAdmin, IsCourier, IsClient

@@ -6,6 +6,7 @@ from django.db.models import Avg, F, ExpressionWrapper, DurationField
 class SuperUser(AbstractUser):
     id_super_user = models.AutoField(primary_key=True)
     phone_number = models.CharField(max_length=20)
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'phone_number']
     ADMIN = 'admin'
     COURIER = 'courier'
     CLIENT = 'client'
