@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -38,17 +40,35 @@ class Status(models.Model):
 
 class Order(models.Model):
     id_order = models.AutoField(primary_key=True)
-    order_number = models.IntegerField(unique=True)
+    order_number = models.CharField(max_length=20, unique=True, blank=True)  # Изменено с IntegerField на CharField
+
     address = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     id_status = models.ForeignKey(Status, on_delete=models.CASCADE)
     id_client = models.ForeignKey(SuperUser, on_delete=models.CASCADE, related_name="client_orders")
     id_courier = models.ForeignKey(SuperUser, on_delete=models.CASCADE, related_name="courier_orders", blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)  # Фиксация времени создания заказа
-    delivered_at = models.DateTimeField(blank=True, null=True)  # Фиксация времени доставки
+    created_at = models.DateTimeField(auto_now_add=True)
+    delivered_at = models.DateTimeField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            today = datetime.date.today().strftime('%Y%m%d')
+            prefix = f"ORD-{today}"
+            last_order = Order.objects.filter(order_number__startswith=prefix).order_by('-order_number').first()
+
+            if last_order and last_order.order_number:
+                last_num = int(last_order.order_number.split("-")[-1])
+                next_num = last_num + 1
+            else:
+                next_num = 1
+
+            self.order_number = f"{prefix}-{next_num:04d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Order {self.order_number} - {self.address}"
+
 
 
 class Feedback(models.Model):
