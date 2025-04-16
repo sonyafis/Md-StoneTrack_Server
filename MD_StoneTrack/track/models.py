@@ -52,17 +52,19 @@ class Order(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.order_number:
-            today = datetime.date.today().strftime('%Y%m%d')
-            prefix = f"ORD-{today}"
+            prefix = "ORD-"
             last_order = Order.objects.filter(order_number__startswith=prefix).order_by('-order_number').first()
 
             if last_order and last_order.order_number:
-                last_num = int(last_order.order_number.split("-")[-1])
-                next_num = last_num + 1
+                try:
+                    last_num = int(last_order.order_number.split("-")[-1])
+                    next_num = last_num + 1
+                except (ValueError, IndexError):
+                    next_num = 1001  # Если что-то пошло не так, начинаем с 1001
             else:
-                next_num = 1
+                next_num = 1001  # Первый заказ
 
-            self.order_number = f"{prefix}-{next_num:04d}"
+            self.order_number = f"{prefix}{next_num:04d}"  # Будет добавлять ведущие нули
 
         super().save(*args, **kwargs)
 
