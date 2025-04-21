@@ -32,9 +32,9 @@ class RegisterSerializer(UserCreateSerializer):
         validated_data.pop('password2')
 
         if 'type_user' not in validated_data:
-            validated_data['type_user'] = 'client'  # По умолчанию
+            validated_data['type_user'] = 'client'
 
-        print("✅ Сохраняем данные пользователя:", validated_data)  # Для отладки
+        print("✅ Сохраняем данные пользователя:", validated_data)
 
         return User.objects.create_user(**validated_data)
 
@@ -50,8 +50,8 @@ class StatusSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     id_status = StatusSerializer(read_only=True)
-    id_client = SuperUserSerializer(read_only=True)  # Сериализуем пользователя как "client"
-    id_courier = SuperUserSerializer(read_only=True)  # Сериализуем пользователя как "courier"
+    id_client = SuperUserSerializer(read_only=True)
+    id_courier = SuperUserSerializer(read_only=True)
 
     class Meta:
         model = Order
@@ -79,7 +79,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
         return feedback
 
 class CourierAnalyticsSerializer(serializers.ModelSerializer):
-    id_courier = SuperUserSerializer(read_only=True)  # Сериализуем курьера
+    id_courier = SuperUserSerializer(read_only=True)
 
     class Meta:
         model = CourierAnalytics
