@@ -59,14 +59,24 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
-    id_super_user = SuperUserSerializer(read_only=True)  # Показываем информацию о пользователе
-    type_user = serializers.CharField(source="id_super_user.type_user", read_only=True)  # Отображаем тип пользователя
-
     class Meta:
         model = Feedback
-        fields = "__all__"
+        fields = '__all__'
 
+    def create(self, validated_data):
+        super_user_obj = validated_data.pop('id_super_user')
 
+        # Проверяем, является ли super_user_obj объектом или ID
+        if isinstance(super_user_obj, SuperUser):
+            super_user = super_user_obj
+        else:
+            try:
+                super_user = SuperUser.objects.get(id_super_user=super_user_obj)
+            except SuperUser.DoesNotExist:
+                raise serializers.ValidationError("Такой SuperUser не найден")
+
+        feedback = Feedback.objects.create(id_super_user=super_user, **validated_data)
+        return feedback
 
 class CourierAnalyticsSerializer(serializers.ModelSerializer):
     id_courier = SuperUserSerializer(read_only=True)  # Сериализуем курьера
