@@ -29,7 +29,7 @@ class RegisterSerializer(UserCreateSerializer):
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop('password2') #q
+        validated_data.pop('password2')
 
         if 'type_user' not in validated_data:
             validated_data['type_user'] = 'client'
