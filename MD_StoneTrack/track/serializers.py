@@ -3,6 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 from .models import SuperUser, Status, Order, Feedback, CourierAnalytics
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -56,6 +57,26 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = "__all__"
+
+class OrderUpdateSerializer(serializers.ModelSerializer):
+    id_status = serializers.PrimaryKeyRelatedField(queryset=Status.objects.all())
+
+    class Meta:
+        model = Order
+        fields = ['id_status']
+
+    def update(self, instance, validated_data):
+        new_status = validated_data.get('id_status')
+
+        print("🔄 Статус обновляется на:", new_status.status_name)
+
+        if new_status and new_status.status_name.strip().lower() == 'доставлен':
+            instance.delivered_at = timezone.now()
+            print("📦 Дата доставки установлена:", instance.delivered_at)
+
+        instance.id_status = new_status
+        instance.save()
+        return instance
 
 
 class FeedbackSerializer(serializers.ModelSerializer):

@@ -6,7 +6,7 @@ from djoser.views import UserViewSet
 
 from .models import Status, Order, Feedback, CourierAnalytics
 from .permissons import IsAdmin, IsCourier, IsClient
-from .serializers import StatusSerializer, OrderSerializer, FeedbackSerializer, CourierAnalyticsSerializer
+from .serializers import StatusSerializer, OrderSerializer, FeedbackSerializer, CourierAnalyticsSerializer, OrderUpdateSerializer
 
 User = get_user_model()
 
@@ -62,6 +62,11 @@ class OrderViewSet(viewsets.ModelViewSet):
             return queryset.filter(id_courier=self.request.user)
 
         return queryset  # Администраторы видят все заказы
+
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return OrderUpdateSerializer
+        return OrderSerializer
 
 class FeedbackViewSet(viewsets.ModelViewSet):
     queryset = Feedback.objects.all()
