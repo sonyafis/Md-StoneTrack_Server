@@ -1,6 +1,3 @@
-import datetime
-
-from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Avg, F, ExpressionWrapper, DurationField
@@ -19,11 +16,10 @@ class SuperUser(AbstractUser):
         (CLIENT, 'Client'),
     ]
 
-    # Добавляем поле type_user с выбором
     type_user = models.CharField(
         max_length=10,
         choices=TYPE_CHOICES,
-        default=CLIENT,  # Можно по умолчанию сделать 'client'
+        default=CLIENT,
     )
 
     def __str__(self):
@@ -40,7 +36,7 @@ class Status(models.Model):
 
 class Order(models.Model):
     id_order = models.AutoField(primary_key=True)
-    order_number = models.CharField(max_length=20, unique=True, blank=True)  # Изменено с IntegerField на CharField
+    order_number = models.CharField(max_length=20, unique=True, blank=True)
 
     address = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
@@ -60,11 +56,11 @@ class Order(models.Model):
                     last_num = int(last_order.order_number.split("-")[-1])
                     next_num = last_num + 1
                 except (ValueError, IndexError):
-                    next_num = 1001  # Если что-то пошло не так, начинаем с 1001
+                    next_num = 1001
             else:
-                next_num = 1001  # Первый заказ
+                next_num = 1001
 
-            self.order_number = f"{prefix}{next_num:04d}"  # Будет добавлять ведущие нули
+            self.order_number = f"{prefix}{next_num:04d}"
 
         super().save(*args, **kwargs)
 
@@ -80,33 +76,31 @@ class Feedback(models.Model):
     message = models.TextField()
     phone_number = models.CharField(max_length=20, blank=True, null=True)
 
-    # Добавляем choices для типа отзыва на русском языке
     TYPE_FEEDBACK_CHOICES = [
         ('complaint', 'Жалоба'),
-        ('suggestion', 'Предложение'),
-        ('inquiry', 'Запрос'),
+        ('suggestion', 'Пожелания'),
+        ('inquiry', 'Вопрос'),
         ('praise', 'Похвала'),
         ('issue', 'Проблема'),
         ('request', 'Заявка'),
-        ('feedback', 'Обратная связь'),
+        ('feedback', 'Отзыв'),
     ]
 
-    type_feedback = models.CharField(max_length=50, choices=TYPE_FEEDBACK_CHOICES)  # Поле с выбором типа отзыва
+    type_feedback = models.CharField(max_length=50, choices=TYPE_FEEDBACK_CHOICES)
 
     # Пользователь и его тип
     USER_TYPE_CHOICES = [
         ('courier', 'Курьер'),
         ('client', 'Клиент'),
     ]
-    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, blank=True, null=True)  # Тип пользователя
+    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, blank=True, null=True)
 
-    # Связь с пользователем
     id_super_user = models.ForeignKey(SuperUser, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
         """Автоматически заполняем user_type на основе id_super_user"""
         if self.id_super_user:
-            self.user_type = self.id_super_user.type_user  # Заполняем тип пользователя
+            self.user_type = self.id_super_user.type_user
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -117,7 +111,7 @@ class CourierAnalytics(models.Model):
     id_courier_analytics = models.AutoField(primary_key=True)
     id_courier = models.OneToOneField(SuperUser, on_delete=models.CASCADE, related_name="analytics")
     total_orders = models.IntegerField(default=0)
-    avg_delivery_time = models.DurationField(blank=True, null=True)  # Среднее время доставки
+    avg_delivery_time = models.DurationField(blank=True, null=True)
     last_updated = models.DateTimeField(auto_now=True)
 
     def update_analytics(self):
