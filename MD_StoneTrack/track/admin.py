@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django import forms
 
-from .models import SuperUser, Status, Order, Feedback, CourierAnalytics
-# 👇 Кастомная форма для Order с фильтрацией поля id_courier
+from .models import SuperUser, Status, Order, Feedback
 class OrderAdminForm(forms.ModelForm):
     class Meta:
         model = Order
@@ -13,8 +12,6 @@ class OrderAdminForm(forms.ModelForm):
         self.fields['id_courier'].queryset = SuperUser.objects.filter(type_user='courier')
         self.fields['id_client'].queryset = SuperUser.objects.filter(type_user='client')
 
-
-# 👇 Регистрируем модель заказа с кастомной формой
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     form = OrderAdminForm
@@ -23,8 +20,6 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ('order_number', 'address', 'id_client__username', 'id_courier__username')
 
 
-# Регистрируем все модели в админке
 admin.site.register(SuperUser)
 admin.site.register(Status)
 admin.site.register(Feedback)
-admin.site.register(CourierAnalytics)

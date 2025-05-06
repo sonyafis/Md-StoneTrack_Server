@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -96,7 +97,7 @@ ROOT_URLCONF = 'MD_StoneTrack.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'MD_StoneTrack/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -117,12 +118,12 @@ WSGI_APPLICATION = 'MD_StoneTrack.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # Меняем движок на MySQL
-        'NAME': 'md_stone_track',  # Имя вашей базы данных в phpMyAdmin
-        'USER': 'root',  # Имя пользователя MySQL
-        'PASSWORD': '',  # Пароль пользователя
-        'HOST': 'localhost',  # Если база на локальном сервере
-        'PORT': '3306',  # Порт MySQL (по умолчанию 3306)
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'md_stone_track',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
@@ -180,7 +181,7 @@ REST_FRAMEWORK = {
     ],
 
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated', #доступ к данным для всех, если поставить в конце isAunthenticated, то доступ к данным только авторизованным
+        'rest_framework.permissions.IsAuthenticated',
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -231,12 +232,16 @@ SIMPLE_JWT = {
 DJOSER = {
     'USER_ID_FIELD': 'id_super_user',
     'LOGIN_FIELD': 'username',
-    'USER_CREATE_PASSWORD_RETYPE': True,  # Подтверждение пароля при регистрации
-    'SET_PASSWORD_RETYPE': True,  # Подтверждение пароля при его изменении
-    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',  # URL для сброса пароля
-    'SEND_ACTIVATION_EMAIL': False,  # Можно включить email-активацию
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    'SET_PASSWORD_RETYPE': True,
+    'PASSWORD_RESET_CONFIRM_URL': 'auth/users/reset_password_confirm/{uid}/{token}',
+    'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
+    'EMAIL': {
+        'password_reset': 'track.email.PasswordResetEmail',
+    },
+    'SEND_ACTIVATION_EMAIL': False,
     'SERIALIZERS': {
-        'user_create': 'track.serializers.RegisterSerializer',  # Используем ваш сериализатор
+        'user_create': 'track.serializers.RegisterSerializer',
         'user': 'track.serializers.SuperUserSerializer',
         'current_user': 'track.serializers.SuperUserSerializer',
     },
@@ -246,4 +251,18 @@ DJOSER = {
         'user': ['rest_framework.permissions.IsAuthenticated'],
     },
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'sonafisun16@gmail.com'
+EMAIL_HOST_PASSWORD = 'ruvr mauy wejj whio'
+DEFAULT_FROM_EMAIL = 'sonafisun16@gmail.com'
+SERVER_EMAIL = 'sonafisun16@gmail.com'
+
+DEFAULT_FROM_EMAIL = 'sonafisun16@gmail.com'
+
+CSRF_USE_SESSIONS = True
+CSRF_COOKIE_HTTPONLY = True
 

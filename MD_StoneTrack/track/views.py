@@ -1,12 +1,11 @@
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions
 from rest_framework.permissions import IsAuthenticated
 from djoser.views import UserViewSet
-
-from .models import Status, Order, Feedback, CourierAnalytics
+from .models import Status, Order, Feedback
 from .permissons import IsAdmin, IsCourier, IsClient
-from .serializers import StatusSerializer, OrderSerializer, FeedbackSerializer, CourierAnalyticsSerializer, OrderUpdateSerializer
+from .serializers import StatusSerializer, OrderSerializer, FeedbackSerializer, OrderUpdateSerializer
 
 User = get_user_model()
 
@@ -16,7 +15,7 @@ class CustomUserViewSet(UserViewSet):
     filterset_fields = ['type_user']
 
     def get_queryset(self):
-        print("Request query params:", self.request.query_params)  # Для отладки
+        print("Request query params:", self.request.query_params)
         queryset = User.objects.all()
         type_user = self.request.query_params.get("type_user")
 
@@ -36,11 +35,11 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['id_client', 'id_courier']  # Фильтрация по клиенту и курьеру
+    filterset_fields = ['id_client', 'id_courier']
 
     def get_permissions(self):
         if not self.request.user.is_authenticated:
-            return [IsAuthenticated()]  # Запрещаем доступ анонимным пользователям
+            return [IsAuthenticated()]
 
         if self.action in ['list', 'retrieve']:
             if self.request.user.type_user == 'courier':
@@ -61,7 +60,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         if self.request.user.type_user == 'courier':
             return queryset.filter(id_courier=self.request.user)
 
-        return queryset  # Администраторы видят все заказы
+        return queryset
 
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:
@@ -74,8 +73,3 @@ class FeedbackViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['id_super_user', 'user_type']
-
-class CourierAnalyticsViewSet(viewsets.ModelViewSet):
-    queryset = CourierAnalytics.objects.all()
-    serializer_class = CourierAnalyticsSerializer
-    permission_classes = [IsAuthenticated, IsAdmin]

@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
-from .models import SuperUser, Status, Order, Feedback, CourierAnalytics
+from .models import SuperUser, Status, Order, Feedback
 from django.utils import timezone
 
 User = get_user_model()
@@ -87,7 +87,6 @@ class FeedbackSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         super_user_obj = validated_data.pop('id_super_user')
 
-        # Проверяем, является ли super_user_obj объектом или ID
         if isinstance(super_user_obj, SuperUser):
             super_user = super_user_obj
         else:
@@ -99,10 +98,4 @@ class FeedbackSerializer(serializers.ModelSerializer):
         feedback = Feedback.objects.create(id_super_user=super_user, **validated_data)
         return feedback
 
-class CourierAnalyticsSerializer(serializers.ModelSerializer):
-    id_courier = SuperUserSerializer(read_only=True)
-
-    class Meta:
-        model = CourierAnalytics
-        fields = "__all__"
 
