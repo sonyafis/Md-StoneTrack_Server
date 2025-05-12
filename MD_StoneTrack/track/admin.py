@@ -23,3 +23,6 @@ class OrderAdmin(admin.ModelAdmin):
 admin.site.register(SuperUser)
 admin.site.register(Status)
 admin.site.register(Feedback)
+admin.site.site_header = "MD_StoneTrack"
+admin.site.site_title = "MD_StoneTrack"
+admin.site.index_title = "Администрирование"
